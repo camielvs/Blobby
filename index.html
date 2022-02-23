@@ -5,24 +5,42 @@
     <meta name="viewport" content="width=device-width">
     <title>Blobby</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   </head>
   <body onClick = "clickTracker(event)">
     <header>
-      <h1>Blobby / Logo</h1>
+      <h1>BLOBBY</h1>
     </header>
     <main>
       <div id="gameControls">
-        <p>Blobs eaten</p>
-        <p>Blob size</p>
-        <p>Game clock</p>
-        <p>Misc controls</p>
-        <p>Game reset</p>
+        <p id="bEaten">Blobs eaten</p>
+        <p id="pSize">Blob size</p>
+        <p id="gameClock">Game clock</p>
+        <p id="help">Help</p>
+        <p id="menu">Menu</p>
       </div>
 
       <div id="gameWindow">
-        <p><b>This is the Blobby game screen. </b>
-          The player will control a small circle with the arrow keys and must move around the map to avoid the bigger blobs!</p>
+        <div id="playerWindow">
+          <div id="player" >
+            <!-- <img src='assets/blobby.png'></img> -->
+          </div>
+        </div>
+        <div id="blobWindow"></div>
+        <!-- Gotta stop these bad boys from stacking -->
+        <div id="text">
+          <p><b>Welcome to Blobby.</b></p>
+          <p>Move your blob with the arrow keys.</p>
+          <p>Your blob --></p>
+          <p>Reach a size of 250px to win!</p>
+          <p>Press <b>spacebar</b> to begin.</p>
+        </div>
+        
       </div>
+
     </main>
     <footer>
       <p>Made by Camiel</p>

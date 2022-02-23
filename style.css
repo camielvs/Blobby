@@ -3,15 +3,19 @@
 }
 
 body {
-  border: 2px solid blue;
-  background-color: lightseagreen;
-  opacity: 0.7;
+  /* border: 2px solid blue; */
+  /* background-color: lightseagreen; */
+  /* opacity: 0.7; */
   text-align: center;
+  background-image: url('https://besthqwallpapers.com/Uploads/21-9-2020/141550/thumb2-brown-hexagons-4k-3d-art-creative-honeycomb.jpg');
+  font-family: 'Architects Daughter', cursive;
+  color: white;
 }
 
 header {
-  border: 2px solid red;
-  background-color: lightcoral;
+  /* border: 2px solid red; */
+  /* background-color: lightcoral; */
+  z-index: 30;
 
   height: 100px;
   display: flex;
@@ -19,45 +23,111 @@ header {
   align-items: center;
 }
 
+h1 {
+  letter-spacing: 10px;
+  font-size: 4em;
+}
+
 main {
   margin: 0 auto;
-  border: 2px solid grey;
+  /* border: 2px solid grey; */
   background-color: lightgrey;
 
-  width: 600px;
+  width: 1000px;
 }
 
 footer {
-  border: 2px solid green;
-  background-color: lightgreen;
+  /* border: 2px solid green; */
+  /* background-color: lightgreen; */
+  z-index: 30;
 
   height: 50px;
 }
 
 #gameControls {
   display: flex;
-  flex-direction: flex-center;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: center;
+  z-index: 30;
+  background-image: url('https://i.pinimg.com/736x/9e/6d/29/9e6d2942180d9f104dc07602a45148f4.jpg');
+  border: 3px solid black;
+  height: 50px;
 }
 
 #gameWindow {
-  display: flex;
+  /* display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: center; */
 
-  height: 600px;
-
-  border: 1px solid yellow;
+  height: 1000px;
+  width: 1000px;
+  border: 3px solid black;
+  box-shadow: 0 0 40px white inset;
   background-color: lightgoldenrodyellow;
-}
-
-div {
-  border: 1px solid black;
-}
-
-main > div {
-  height: 50px;
+  position: relative;
+  background-image: url('https://64.media.tumblr.com/e3fc1e110f6b1356273d0e3d370f1d12/tumblr_o1qlb55mdB1us2dqwo1_640.jpg');
+  object-fit: cover;
 }
 
 main > div > p {
   width: 20%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+main > div > p:hover {
+  border: 2px solid red;
+}
+
+#gameWindow > p {
+  position: relative;
+  left: 0; 
+  right: 0; 
+  margin-left: auto; 
+  margin-right: auto; 
+}
+
+#player {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: black;
+  border: 1px solid white;
+  border-radius: 5px;
+  left: 300px;
+  top: 300px;
+  z-index: 20;
+  box-shadow: 0 0 5px white;
+}
+
+.blob {
+  position: absolute;
+  background-color: limegreen;
+  border: 1px solid black;
+  border-radius: 5px;
+  z-index: 10;
+}
+
+#text {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  z-index: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+img {
+  object-fit: contain;
+  z-index: 50;
+  margin: 0 auto;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 }
