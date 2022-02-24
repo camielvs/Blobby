@@ -31,12 +31,24 @@
         </div>
         <div id="blobWindow"></div>
         <!-- Gotta stop these bad boys from stacking -->
-        <div id="text">
-          <p><b>Welcome to Blobby.</b></p>
-          <p>Move your blob with the arrow keys.</p>
-          <p>Your blob --></p>
-          <p>Reach a size of 250px to win!</p>
-          <p>Press <b>spacebar</b> to begin.</p>
+        <div id="textOverlay">
+          <div id="startupWindow">
+            <h2>Welcome to Blobby.</h2>
+            <p>Avoid blobs bigger than you. Consume blobs smaller than you.</p>
+            <p>Move your blob with the arrow keys (or WASD).</p>
+            <p id="yourBlobText">Your blob ---></p>
+            <p>Reach a size of 200px to win.</p>
+            <p id="hintText">Hint: Watch out for radioactive and flaming blobs!</p>
+            <h3>Click/spacebar to begin.</h3>
+          </div>
+          <div id="gameOverWindow">
+            <h2>GAME OVER</h2>
+            <p id="gameResults"></p>
+            <p>Click/spacebar to play again.</p>
+          </div> 
+          <div id="pauseWindow">
+            <p>GAME PAUSED</p>
+          </div> 
         </div>
         
       </div>

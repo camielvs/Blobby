@@ -16,16 +16,25 @@ header {
   /* border: 2px solid red; */
   /* background-color: lightcoral; */
   z-index: 30;
-
   height: 100px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
+
+
 h1 {
   letter-spacing: 10px;
   font-size: 4em;
+}
+
+h2 {
+  font-size: 3em;
+}
+
+h3 {
+  font-size: 2em;
 }
 
 main {
@@ -33,7 +42,7 @@ main {
   /* border: 2px solid grey; */
   background-color: lightgrey;
 
-  width: 1000px;
+  width: 800px;
 }
 
 footer {
@@ -49,6 +58,7 @@ footer {
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
+  font-size: 1.2em;
   z-index: 30;
   background-image: url('https://i.pinimg.com/736x/9e/6d/29/9e6d2942180d9f104dc07602a45148f4.jpg');
   border: 3px solid black;
@@ -56,12 +66,8 @@ footer {
 }
 
 #gameWindow {
-  /* display: flex;
-  justify-content: center;
-  align-items: center; */
-
-  height: 1000px;
-  width: 1000px;
+  height: 800px;
+  width: 800px;
   border: 3px solid black;
   box-shadow: 0 0 40px white inset;
   background-color: lightgoldenrodyellow;
@@ -100,7 +106,7 @@ main > div > p:hover {
   left: 300px;
   top: 300px;
   z-index: 20;
-  box-shadow: 0 0 5px white;
+  /* box-shadow: 0 0 5px white; */
 }
 
 .blob {
@@ -111,16 +117,49 @@ main > div > p:hover {
   z-index: 10;
 }
 
-#text {
+#textOverlay {
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
   z-index: 0;
-  justify-content: center;
-  align-items: center;
 }
 
-img {
+#startupWindow, #gameOverWindow, #pauseWindow {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+}
+
+#startupWindow > p {
+  width: 42%;
+  margin: 0.5em;
+  font-size: 1.25em;
+}
+
+#gameOverWindow > p {
+  font-size: 1.5em;
+}
+
+#yourBlobText {
+  text-align: left;
+  padding-top: 5%;
+  padding-bottom: 5%;
+}
+
+#pauseWindow {
+  display: none;
+  z-index: 100;
+  position: absolute;
+}
+
+#pauseWindow > p {
+  font-size: 3em;
+}
+
+/* img {
   object-fit: contain;
   z-index: 50;
   margin: 0 auto;
@@ -130,4 +169,4 @@ img {
   align-items: center;
   width: 100%;
   height: 100%;
-}
+} */
