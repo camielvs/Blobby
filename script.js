@@ -117,7 +117,7 @@ class Blob {
         if (randRoll < 1) {
           this.type = 'radioactive'; //spawns blobs around it, which decay
           this.color = 'black'; //will be random
-          this.aggressive = false;
+          this.isDecaying = true;
           this.reward = -2;
           this.obj.style.boxShadow = '0px 0px 10px lime';
         } else if (randRoll < 5) {
@@ -283,8 +283,19 @@ function loadCache() {
     playerSize: document.getElementById('pSize'),
     gameClock: document.getElementById('gameClock'),
     help: document.getElementById('help'),
-    menuBtn: document.getElementById('menu'),
+    muteBtn: document.getElementById('mute'),
 
+
+    //AUDIO
+    gameWinMusic: new Audio('assets/gameWinMusic.wav'),
+    gameLoseMusic: new Audio('assets/gameLoseMusic.mp3'),
+    gameLoseSound: new Audio('assets/gameLoseSound.wav'),
+    blobSpawnSound: new Audio('assets/blobSpawn.wav'),
+    blobEatingSound: new Audio('assets/blobEaten.wav'),
+    pickupPowerupSound: new Audio('assets/pickupPowerup.wav'),
+    pauseGameSound: new Audio('assets/gamePause.wav'),
+    menuHoverSound: new Audio('assets/menuHover.wav'),
+    backgroundMusic: new Audio('assets/backgroundMusic.wav'),
 
     WINDOWHEIGHT: 800, //px
     WINDOWWIDTH: 800, //px
@@ -315,6 +326,7 @@ function loadCache() {
       if (GAME.end) {
         //Game is over - reset game
         init();
+        CACHE.pauseGameSound.play();
       } else if (GAME.starting) {
         //Game is reset - start game
         startGame();
@@ -340,6 +352,15 @@ function loadCache() {
       keyLog = keyLog.filter(x=>{return x != keyPressed});
     }
   });
+
+  //Audio on repeat
+  CACHE.backgroundMusic.volume = 0.4;
+  CACHE.backgroundMusic.loop = true; 
+  CACHE.gameLoseMusic.volume = 0.6;
+  CACHE.gameLoseMusic.loop = true;
+  CACHE.gameWinMusic.volume = 0.8;
+  CACHE.gameWinMusic.loop = true;
+
 }
 
 function resetGamestate() {
@@ -350,7 +371,10 @@ function resetGamestate() {
   GAME = {
     starting: true,
     end: false,
+    winSize: CACHE.WINDOWWIDTH/4,
+    // winSize: 11, //for testing purposes
     paused: true,
+    muted: false,
     blobsEaten: 0, //nom nom
     timeElapsed: 0, //seconds
     enemySpawnChance: FPS * 3, //spance, per frame: 1 in ...
@@ -389,6 +413,9 @@ function loadUI() {
   CACHE.startupWindow.style.opacity = '1';
 
   CACHE.hintText.innerText = `Hint: ${getRandomHint()}`;
+
+
+
   
 }
 
@@ -431,6 +458,13 @@ function startGame() {
   //remove the startup UI
   fadeOutEffect(CACHE.startupWindow);
   GAME.starting = false;
+
+  //play some beats!
+  CACHE.gameLoseMusic.pause();
+  CACHE.gameWinMusic.pause();
+  CACHE.backgroundMusic.currentTime = 0;
+  CACHE.backgroundMusic.play();
+
   pauseGame(); //unpauses the game and starts
 }
 
@@ -438,12 +472,16 @@ function startGame() {
 function gameEngine() {
   //Compute time elapsed
   GAME.timeElapsed += 1/FPS; //seconds
+  if (!CACHE.backgroundMusic.paused) {
+    CACHE.backgroundMusic.play();
+  }
 
 
   //Spawn enemy blobs at random
   if (enemyBlobs.length < MAX_ENEMY_BLOBS) {
     if (Math.floor(Math.random() * GAME.enemySpawnChance < 1)) {
       enemyBlobs.push(new Blob);
+      CACHE.blobSpawnSound.play();
     }
   }
 
@@ -496,7 +534,7 @@ function gameEngine() {
   });
   
   //check win
-  if (PLAYER.size > CACHE.WINDOWWIDTH/4) {
+  if (PLAYER.size > GAME.winSize) {
     winGame();
   }
 
@@ -537,6 +575,7 @@ function checkCollisions(blob) {
     // console.log('Collision!');
     if (PLAYER.size > blob.size) { //player is bigger than blob
       GAME.blobsEaten += 1;
+      CACHE.blobEatingSound.play();
 
       //consume blob by adding a quarter of its total area to the player's blob area
       let pArea = PLAYER.size ** 2 * Math.PI/4;
@@ -562,18 +601,25 @@ function checkCollisions(blob) {
 
 function loseGame(blob) {
   stopClock();
+  CACHE.backgroundMusic.pause();
+  CACHE.gameLoseSound.play();
+  CACHE.gameLoseMusic.currentTime = 0;
+  CACHE.gameLoseMusic.play();
   GAME.end = true;
   CACHE.gameClock.innerText = `RESTART GAME`;
   CACHE.gameOverWindow.style.display = 'flex';
-  CACHE.resultsText.innerText = `YOU LOSE\nTime survived: ${Math.round(GAME.timeElapsed * 10)/10}s\nYour size: ${PLAYER.size}\nBlob size: ${blob.size}`;
+  CACHE.resultsText.innerText = `YOU LOSE\nTime survived: ${Math.floor(GAME.timeElapsed * 10)/10}s\nYour size: ${PLAYER.size}\nBlob size: ${Math.floor(blob.size*100)/100}`;
 }
 
 function winGame() {
-  GAME.end = true;
   stopClock();
+  CACHE.backgroundMusic.pause();
+  CACHE.gameWinMusic.currentTime = 0;
+  CACHE.gameWinMusic.play();
+  GAME.end = true;
   CACHE.gameClock.innerText = `RESTART GAME`;
   CACHE.gameOverWindow.style.display = 'flex';
-  CACHE.resultsText.innerText = `YOU WIN!\nBlobs eaten: ${GAME.blobsEaten}\nTime taken: ${Math.round(GAME.timeElapsed * 10)/10}s`;
+  CACHE.resultsText.innerText = `YOU WIN!\nBlobs eaten: ${GAME.blobsEaten}\nTime taken: ${Math.floor(GAME.timeElapsed * 10)/10}s`;
 
 
 }
@@ -633,7 +679,7 @@ function render() {
 }
 
 function displayClock() {
-  CACHE.gameClock.innerText = `${Math.round(GAME.timeElapsed * 10)/10}s`;
+  CACHE.gameClock.innerText = `${Math.floor(GAME.timeElapsed * 10)/10}s`;
 }
 
 /*USER INTERACTION*/
@@ -646,6 +692,7 @@ function clickTracker(ev) {
     if (GAME.end) {
       //Game is over - reset game
       init();
+      CACHE.pauseGameSound.play();
     } else if (GAME.starting) {
       //Start game
       startGame(); //remove startup text
@@ -654,21 +701,61 @@ function clickTracker(ev) {
     if (GAME.end) {
       //Reset game
       init();
-    } else {
+    } else if (!GAME.starting) {
       //pause game
       pauseGame();
     }
   } else if (ev.target.id === "help") {
     //BESTAIRY functionality to be added, so players can look up info on the different blob types
-    pauseGame();
-  } else if (ev.target.id === "menu") {
     //SETTINGS functionality to be added, so players can change game parameters, log highscores, or restart
-    pauseGame();
+    if (!GAME.starting) {
+      //pause game
+      pauseGame();
+    }
+  } else if (ev.target.id === "mute") {
+    muteSFX();
+  }
+}
+
+function muteSFX() {
+  GAME.muted = !GAME.muted;
+
+  if (GAME.muted) {
+    //MUTE ALL AUDIO
+    CACHE.muteBtn.innerText = 'Unmute';
+    CACHE.muteBtn.style.color = 'firebrick';
+    CACHE.muteBtn.style.border = '3px solid firebrick';
+
+    CACHE.gameWinMusic.muted = true;
+    CACHE.gameLoseMusic.muted = true;
+    CACHE.gameLoseSound.muted = true;
+    CACHE.blobSpawnSound.muted = true;
+    CACHE.blobEatingSound.muted = true;
+    CACHE.pickupPowerupSound.muted = true;
+    CACHE.pauseGameSound.muted = true;
+    CACHE.menuHoverSound.muted = true;
+    CACHE.backgroundMusic.muted = true;
+  } else {
+    //UNMUTE ALL AUDIO
+    CACHE.muteBtn.innerText = 'Mute';
+    CACHE.muteBtn.style.color = 'white';
+    CACHE.muteBtn.style.border = '0px solid firebrick';
+
+    CACHE.gameWinMusic.muted = false;
+    CACHE.gameLoseMusic.muted = false;
+    CACHE.gameLoseSound.muted = false;
+    CACHE.blobSpawnSound.muted = false;
+    CACHE.blobEatingSound.muted = false;
+    CACHE.pickupPowerupSound.muted = false;
+    CACHE.pauseGameSound.muted = false;
+    CACHE.menuHoverSound.muted = false;
+    CACHE.backgroundMusic.muted = false;
   }
 }
 
 function pauseGame() {
   GAME.paused = !GAME.paused;
+  CACHE.pauseGameSound.play();
   if (GAME.paused) {
     // console.log('Pausing game')
     stopClock();
