@@ -8,12 +8,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   </head>
   <body onClick = "clickTracker(event)">
     <header>
       <h1>BLOBBY</h1>
     </header>
+
     <main>
       <div id="gameControls">
         <p id="bEaten">Blobs eaten</p>
@@ -26,11 +26,11 @@
       <div id="gameWindow">
         <div id="playerWindow">
           <div id="player" >
-            <!-- <img src='assets/blobby.png'></img> -->
           </div>
         </div>
+
         <div id="blobWindow"></div>
-        <!-- Gotta stop these bad boys from stacking -->
+
         <div id="textOverlay">
           <div id="startupWindow">
             <h2>Welcome to Blobby.</h2>
@@ -41,19 +41,20 @@
             <p id="hintText">Hint: Watch out for radioactive and flaming blobs!</p>
             <h3>Click/spacebar to begin.</h3>
           </div>
+
           <div id="gameOverWindow">
             <h2>GAME OVER</h2>
             <p id="gameResults"></p>
             <p>Click/spacebar to play again.</p>
           </div> 
+
           <div id="pauseWindow">
             <p>GAME PAUSED</p>
           </div> 
         </div>
-        
       </div>
-
     </main>
+    
     <footer>
       <p>Made by Camiel</p>
     </footer>

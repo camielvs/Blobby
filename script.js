@@ -88,7 +88,7 @@ class Blob {
       this.size = Math.floor((PLAYER.size * (pseudoGaussianDistribution() * 0.5 + 1))*1000)/1000; //pixels diameter scales with player size
     }
     this.decayRate = 1; //does not decay
-    //blob spawn location - spawning is done radially in a circle around the center of the game window and the blob is given a direction that is roughly toward the centre 
+    //blob spawn location - spawning is done radially in a circle around the center of the game window. The blob spawns somewhere on this circle oputside the game screen and is given a direction that is roughly toward the centre.
     //FANCY MATHEMATICS/TRIGONOMETRY BELOW - TRUST ME, I WORKED IT OUT ON A PIECE OF PAPER.
     let angle = Math.random() * 2 * Math.PI; //spawn angle in radians - 0 is horizontal
     this.left = CACHE.WINDOWWIDTH/2 * ( 1 + Math.max(Math.min(Math.sqrt(2) * Math.cos(angle), 1), -1)); //spawns on edge of window
@@ -102,82 +102,76 @@ class Blob {
     this.direction = angle + Math.PI - Math.PI/8 + Math.random() * Math.PI/8; //angle (measured from 0 radians = horizontal -> down) that the blob is travelling in
     this.hasEnteredWindow = false;
 
-    this.id = 'b' + (Math.random() + this.speed + this.size + this.direction); //random pseudo random number lol
-
-    if (Math.floor(Math.random() * GAME.specialSpawnChance) < 1) {
-      //SPECIAL BLOB
-      this.reward = 2; //specials are worth double!
-       
-      let randRoll = Math.floor(Math.random() * 16);
-      if (Math.floor(Math.random() * 2) < 1) { //50% chance of angry vs passive blob
-        //agressive blobs
-        this.aggressive = true; //will track the player
-        // console.log('Spawning angry blob');
-        if (randRoll < 1) {
-          this.type = 'radioactive'; //spawns blobs around it, which decay
-          this.color = 'black'; //will be random
-          this.decayRate = 0.9 ** (1/FPS); //decay by 10% per s
-          this.reward = -2; //radioactive is bad
-          this.obj.style.boxShadow = '0px 0px 10px red';
-          this.size *= 1.5; //50% bigger
-          this.speed *= 0.8; //20% slower
-        } else if (randRoll < 5) {
-          this.type = 'meteor'; //burns the player to make them smaller!
-          this.color = '#ffff55'; //orange-red
-          this.speed = Math.max(Math.min(this.speed * 1.5, 300/FPS), 150/FPS); //max speed 300px/s, min speed 150px/s;
-          this.reward = -1; //it takes away from you!
-          this.size *= 0.8; //20% smaller
-        } else if (randRoll < 9) {
-          this.type = 'hawk'; //circles the player - lunges in when close!
-          this.color = '#aaaa55'; //gross greeny-gold
-          this.size = Math.max(this.size, 0.95 * PLAYER.size); //will almost always be as big as the player
-          this.baseSpeed = this.speed; //for lunging purposes
-          this.isLunging = false; //for lunging purposes
+    this.id = 'b' + (Math.random() + this.speed + this.size + this.direction); //pseudo random number lol
+    if (PLAYER) {
+      if (Math.floor(Math.random() * GAME.specialSpawnChance) < 1) {
+        //SPECIAL BLOB
+        this.reward = 2; //specials are worth double!
+        
+        let randRoll = Math.floor(Math.random() * 16);
+        if (Math.floor(Math.random() * 2) < 1) { //50% chance of angry vs passive blob
+          //agressive blobs
+          this.aggressive = true; //will track the player
+          if (randRoll < 1) {
+            this.type = 'radioactive'; //spawns blobs around it, which decay
+            this.color = 'black'; //will be random
+            this.decayRate = 0.9 ** (1/FPS); //decay by 10% per s
+            this.reward = -2; //radioactive is bad
+            this.obj.style.boxShadow = '0px 0px 10px red';
+            this.size *= 1.5; //50% bigger
+            this.speed *= 0.8; //20% slower
+          } else if (randRoll < 5) {
+            this.type = 'meteor'; //burns the player to make them smaller!
+            this.color = '#ffff55'; //orange-red
+            this.speed = Math.max(Math.min(this.speed * 1.5, 300/FPS), 150/FPS); //max speed 300px/s, min speed 150px/s;
+            this.reward = -1; //it takes away from you!
+            this.size *= 0.8; //20% smaller
+          } else if (randRoll < 9) {
+            this.type = 'hawk'; //circles the player - lunges in when close!
+            this.color = '#aaaa55'; //gross greeny-gold
+            this.size = Math.min(Math.max(this.size * 1.2, 0.95 * PLAYER.size), 1.5 * PLAYER.size); //will atleast almost always be as big as the player
+            this.baseSpeed = this.speed; //for lunging purposes
+            this.isLunging = false; //for lunging purposes
+          } else {
+            this.type = 'tracker'; //tracks the player as opposed to going in a straight line
+            this.color = '#ff5555'; //some kind of red it seems
+            this.speed = Math.min(this.speed, 120/FPS); //trackers can never be faster than 120px/s
+            this.size = Math.min(1.2 * this.size, 1.2 * PLAYER.size); //20% larger, but not more than 20% bigger than the player
+          }
         } else {
-          this.type = 'tracker'; //tracks the player as opposed to going in a straight line
-          this.color = '#ff5555'; //some kind of red it seems
-          this.speed = Math.min(this.speed, 120/FPS); //trackers can never be faster than 120px/s
-          this.size = Math.min(1.2 * this.size, 1.2 * PLAYER.size); //20% larger, but not more than 20% bigger than the player
-        }
+          //passive blobs
+          this.aggressive = false; //will not track the player
+          if (randRoll < 1) {
+            this.type = 'angelic'; //bonus xp
+            this.color = '#d4d4d4'; //creamy white
+            this.reward = 3; //even more exp for these!
+          } else if (randRoll < 6) {
+            this.type = 'speeder'; //goes really fast!
+            this.color = '#ffaa55'; //orangey
+            this.speed = Math.max(this.speed * 2, 120/FPS); //min speed 120px/s
+            this.size = Math.max(this.size / 2, 5); //min 5px size
+          } else if (randRoll < 11) {
+            this.type = 'grower'; //gets bigger over time
+            this.color = '#55ffff'; //teal-ish
+          } else {
+            this.type = 'jumbo'; //big and slow
+            this.color = '#555555'; //grey
+            this.size *= 2; //100% larger
+            this.speed = (Math.random() * 30 + 20)/FPS; //speed 20 - 50
+          }
+        }   
       } else {
-        // console.log('Spawning friendly blob');
-        //passive blobs
-        this.aggressive = false; //will not track the player
-        if (randRoll < 1) {
-          this.type = 'angelic'; //bonus xp
-          this.color = '#d4d4d4'; //creamy white
-          this.reward = 3; //even more exp for these!
-        } else if (randRoll < 6) {
-          this.type = 'speeder'; //goes really fast!
-          this.color = '#ffaa55'; //orangey
-          this.speed = Math.max(this.speed * 2, 120/FPS); //min speed 120px/s
-          this.size = Math.max(this.size / 2, 5); //min 5px size
-        } else if (randRoll < 11) {
-          this.type = 'grower'; //gets bigger over time
-          this.color = '#55ffff'; //teal-ish
-        } else {
-          this.type = 'jumbo'; //big and slow
-          this.color = '#555555'; //grey
-          this.size *= 2; //100% larger
-          this.speed = (Math.random() * 30 + 20)/FPS; //speed 20 - 50
-        }
-      }   
-    } else {
-      this.type = 'normal';
-      this.reward = 1;
-      this.aggressive = false;
-      this.color = '#aaff55';
+        this.type = 'normal';
+        this.reward = 1;
+        this.aggressive = false;
+        this.color = '#aaff55';
+      }
     }
 
     this.obj.classList.add('blob');
     this.obj.style.backgroundColor = this.color;
     this.obj.id = this.id;
     CACHE.blobWindow.appendChild(this.obj);
-
-    // console.log(this.type + ' blob spawned');
-    // console.log('Location: ' + this.left+'L, '+this.top+'T');
-    // console.log('Direction: '+this.direction+' radians');
-
   }
   delete() {
     let newArr = enemyBlobs.filter(x=>{
@@ -186,10 +180,8 @@ class Blob {
     enemyBlobs = newArr;
     let blobEl = document.getElementById(this.id);
     blobEl.remove();
-    // console.log('blob deleted');
   }
   move() {
-    // console.log('moving blob');
     if (this.aggressive) {
       //aggressive: pursue the player according to pre-set behaviour
       //Initial mathematics to locate the player for tracking behaviour
@@ -223,7 +215,7 @@ class Blob {
 
       } else if (this.type==='hawk') {
         //Hawks are passive until the player comes near, then they will circle around and finally strike!
-        let maxTurningCircle = 270/FPS * Math.PI/180; //hawks can turn tight 270deg/s circles!
+        let maxTurningCircle = 360/FPS * Math.PI/180; //hawks can turn tight 360deg/s circles!
         if (PLAYER.size > this.size) {
           //If the player is bigger than the hawk, it will ignore the player and be passive
           newAngle = currentAngle;
@@ -231,17 +223,26 @@ class Blob {
           if (this.isLunging) {
             //Hawk is lunging, continue in straight line -> cannot correct its course!
             newAngle = currentAngle;
+            if (dist > Math.min(150 + 1.5 * (PLAYER.size + this.size), 750)) {
+              //Lunge missed the player
+              this.isLunging = false;
+            }
           } else if (dist < Math.min(100 + (PLAYER.size + this.size), 500)) {
             //player is within strike distance - turn to lunge!
             this.speed = this.baseSpeed * 2;
             newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
-            if (Math.abs(currentAngle - proposedAngle) < Math.PI/32) {
+            if (Math.abs(currentAngle - newAngle) < Math.PI/90) {
               //if heading in approximately the player's direction, start lunging
               this.isLunging = true;
             }
-          } else if (dist < Math.min(250 + 2.5 * (PLAYER.size + this.size), 1000)) {
-            //hawk is aware of player and begins to circle in
-            this.speed = this.baseSpeed * 1.5; //speed up slightly
+          } else if (dist < Math.min(50 + 0.5 * (PLAYER.size + this.size), 250)) {
+            //Is really close, but may not be facing the right way - lunge!
+            this.speed = this.baseSpeed * 2;
+            newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
+            this.isLunging = true;
+          } else if (dist < Math.min(200 + 2 * (PLAYER.size + this.size), 1000)) {
+            //hawk is aware of player and begins to circle in - anticlockwise direction only (for now...)
+            this.speed = this.baseSpeed * 1.25; //speed up slightly
             let adjProposedAngle = proposedAngle + 80 * Math.PI/180 * Math.sign(Math.cos(proposedAngle - currentAngle));
             newAngle = computeTurningCircle(currentAngle,adjProposedAngle,maxTurningCircle);
           } else {
@@ -255,8 +256,8 @@ class Blob {
         //Turning circle of 120 degrees/s either direction
         let maxTurningCircle = 120/FPS * Math.PI/180;
         
-        if ((this.size >= PLAYER.size) || (dist + PLAYER.size/2 > CACHE.WINDOWWIDTH/2)) {
-          //Tracker is bigger than player, or far away - pursue
+        if ((this.size >= 0.95*PLAYER.size) || (dist + PLAYER.size/2 > CACHE.WINDOWWIDTH/2)) {
+          //Tracker is approx. bigger than player, or far away - pursue
           newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
         } else {
           //Tracker is smaller than player and close by - flee!!
@@ -284,25 +285,18 @@ class Blob {
       this.size *= 1 + 0.15/FPS;
     }
 
-    
     if (!this.hasEnteredWindow) {
       if ((this.left > 0) && (this.left < CACHE.WINDOWWIDTH-this.size) && (this.top > 0) && (this.top < CACHE.WINDOWHEIGHT-this.size)) {
         //Check if entire blob has entered the window
-        // console.log('Blob entered window: ' + this.type);
         this.hasEnteredWindow = true;
       }
     } else if (this.hasEnteredWindow && ((this.left < -this.size/2) || (this.left > CACHE.WINDOWWIDTH-this.size/2) || (this.top < -this.size/2) || (this.top > CACHE.WINDOWHEIGHT-this.size/2))) {
       //Despawn blob if centre has left the game window
-      // console.log('Blob out of window: ' + this.type);
       this.delete();
     }
 
   }
 }
-
-// class Player extends Blob {
-  //to refactor all of the different blob types into subclasses
-// }
 
 function main() {
   console.log('Loading Cache...')
@@ -438,7 +432,6 @@ function resetGamestate() {
     starting: true,
     end: false,
     winSize: CACHE.WINDOWWIDTH/4,
-    // winSize: 11, //for testing purposes
     paused: true,
     muted: false,
     blobsEaten: 0, //nom nom
@@ -447,7 +440,7 @@ function resetGamestate() {
     MAXENEMYBLOBS: 16, //on screen at any one time
     enemySpawnChance: FPS * 3, //spance, per frame: 1 in ...
     spawnChanceReduction: 0.99 ** (1/FPS), //amount the chance above changes by each frame (based on 1% per second)
-    specialSpawnChance: 1, //1/16 chance of a blob spawning with special properties
+    specialSpawnChance: 16, //1/16 chance of a blob spawning with special properties
     specialChanceReduction: 0.99 ** (1/FPS), //amount the chance above changes by each frame (based on 1% per second)
   }
 
@@ -482,16 +475,13 @@ function loadUI() {
 
   CACHE.hintText.innerText = `Hint: ${getRandomHint()}`;
   CACHE.winSizeText.innerText = `Reach a size of ${Math.round(GAME.winSize*100)/100}px to win.`
-
-
-  
 }
 
 function getRandomHint() {
   let hints = [
     //Game tips
     'Did you know that you can pause the game with spacebar?',
-    'Did you know that you can pause the game by clicking on the timer in the header?',
+    'Did you know that you can pause the game by clicking on the timer in the menubar?',
     'The "Mute" button mutes all audio and sound effects in the game.',
     'Don\'t linger close to the edges, a large blob might suddenly surprise you!',
     'Radioactive blobs glow, change colours and make you smaller!',
@@ -541,7 +531,6 @@ function getRandomHint() {
     //Leeches consume other blobs to get bigger as they pursue you!
     //Toxic blobs leave a decaying pool of acid that reduces your size if you cross over it.
     //Heart blobs grant a random powerup when eaten.
-
   ]
 
   return hints[Math.floor(Math.random() * hints.length)];
@@ -579,7 +568,7 @@ function gameEngine() {
     }
   }
 
-  //COmpute new chances of spawns as time progresses
+  //Compute new chances of spawning blobs as time progresses
   GAME.enemySpawnChance *= GAME.spawnChanceReduction;
   GAME.enemySpawnChance = Math.max(GAME.enemySpawnChance, 1/3 * FPS); //bottoms out at 3 spawns per second
 
@@ -601,7 +590,7 @@ function gameEngine() {
         let newBlob = new Blob;
         newBlob.type = 'normal';
         newBlob.aggressive = false;
-        newBlob.decayRate = 0.75 ** (1/FPS); //decay by 25%/s
+        newBlob.decayRate = 0.75 ** (1/FPS); //decay by 25% per s
         newBlob.direction = Math.random() * 180 / Math.PI;
         newBlob.speed *= 2;
         newBlob.size = blob.size * (0.5 + 0.5 * pseudoGaussianDistribution());
@@ -618,8 +607,8 @@ function gameEngine() {
 
   for (blob of enemyBlobs) {
     blob.size *= blob.decayRate;
-    if (blob.size < 5) { //when blob is small, delete
-      // console.log('small blob: ' + blob.type);
+    if (blob.size < 5) { 
+      //when blob is too small, delete it
       blob.delete();
     }
   }
@@ -639,7 +628,6 @@ function gameEngine() {
 
 /*GAME HELPER FUNCTIONS*/
 function movePlayer(keyPressed) {
-  //currently an unintended "feature" that causes the player to move faster diagonally - look into this in future.
   switch (keyPressed) {
     case 'ArrowUp': //UP
       PLAYER.top = Math.max(PLAYER.top - PLAYER.speed,0);
@@ -664,8 +652,9 @@ function checkCollisions(blob) {
   let dy = (PLAYER.top + PLAYER.size/2) - (blob.top + blob.size/2);
 
   if (Math.sqrt(dx**2 + dy**2) < (PLAYER.size + blob.size)/2) {
-    // console.log('Collision!');
-    if (PLAYER.size > blob.size) { //player is bigger than blob
+    //Collision!
+    if (PLAYER.size > blob.size) { 
+      //player is bigger than blob
       GAME.blobsEaten += 1;
       CACHE.blobEatingSound.play();
 
@@ -677,7 +666,7 @@ function checkCollisions(blob) {
       let sizeBefore = PLAYER.size;
       PLAYER.size = Math.max(Math.floor(Math.sqrt(pArea * 4 / Math.PI) * 100)/100,5); //to 2 decimal places, no smaller than 5px
       
-      //readjust player location so size increases from the centre
+      //re-adjust player location so size increases from the centre
       PLAYER.left -= (PLAYER.size - sizeBefore)/2;
       PLAYER.top -= (PLAYER.size - sizeBefore)/2;
 
@@ -713,8 +702,9 @@ function computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle) {
 
   let dA = currentAngle - proposedAngle; //difference in blob's current trajectory and the trajectory it wants to be on
 
+  //Determine what direction the blob wants to turn
   if (((dA > 0) && (dA < Math.PI)) || ((dA > -2 * Math.PI) && (dA < -Math.PI))) {
-    //is turning left
+    //is turning LEFT
     if ((proposedAngle > currentAngle - maxTurningCircle) && (proposedAngle < currentAngle)) {
       //If the proposed angle is within the turning circle, return it
       return proposedAngle;
@@ -724,7 +714,7 @@ function computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle) {
     }
     
   } else if (((dA > Math.PI) && (dA < 2 * Math.PI)) || ((dA > -Math.PI) && (dA < 0))) {
-    //is turning right
+    //is turning RIGHT
     if ((proposedAngle > currentAngle) && (proposedAngle < currentAngle + maxTurningCircle)) {
       //If the proposed angle is within the turning circle, return it
       return proposedAngle;
@@ -765,8 +755,6 @@ function winGame() {
   CACHE.gameClock.innerText = `RESTART GAME`;
   CACHE.gameOverWindow.style.display = 'flex';
   CACHE.resultsText.innerText = `YOU WIN!\nBlobs eaten: ${GAME.blobsEaten}\nTime taken: ${Math.floor(GAME.timeElapsed * 10)/10}s`;
-
-
 }
 
 /*TOOLBOOX*/
@@ -777,7 +765,6 @@ function pseudoGaussianDistribution() {
 
 /*USER INTERFACE*/
 function render() {
-
   //PLAYER SIZE
   CACHE.player.style.width = `${PLAYER.size}px`;
   CACHE.player.style.height = `${PLAYER.size}px`;
@@ -785,8 +772,6 @@ function render() {
   //PLAYER POSITION
   CACHE.player.style.top = `${PLAYER.top}px`;
   CACHE.player.style.left = `${PLAYER.left}px`;
-
-  // CACHE.player.style.innerHTML += `<img src='assets/blobby.png'></img>`;
 
   //BLOBS
   for (blob of enemyBlobs) {
@@ -799,8 +784,8 @@ function render() {
 
     if (blob.type === "radioactive") {
       //changes colour all the time
-      let randomColor = Math.floor(Math.random()*16777215).toString(16);
-      blob.obj.style.backgroundColor = '#' + randomColor;
+      let randomColour = Math.floor(Math.random()*16777215).toString(16);
+      blob.obj.style.backgroundColor = '#' + randomColour;
     }
   }
 
@@ -819,7 +804,6 @@ function displayClock() {
 
 /*USER INTERACTION*/
 function clickTracker(ev) {
-  // console.log('you clicked: '+ev.target.nodeName);
   if ((ev.target.id === "startupWindow") || (ev.target.id === "gameOverWindow") || (ev.target.parentNode.id === "startupWindow") || (ev.target.parentNode.id === "gameOverWindow")) {
     if (GAME.end) {
       //Game is over - reset game
@@ -837,13 +821,6 @@ function clickTracker(ev) {
       //pause game
       pauseGame();
     }
-  } else if (ev.target.id === "help") {
-    //BESTAIRY functionality to be added, so players can look up info on the different blob types
-    //SETTINGS functionality to be added, so players can change game parameters, log highscores, or restart
-    // if (!GAME.starting) {
-    //   //pause game
-    //   pauseGame();
-    // }
   } else if (ev.target.id === "mute") {
     muteSFX();
   }
@@ -889,11 +866,9 @@ function pauseGame() {
   GAME.paused = !GAME.paused;
   CACHE.pauseGameSound.play();
   if (GAME.paused) {
-    // console.log('Pausing game')
     stopClock();
     CACHE.pauseText.style.display = 'flex';
   } else {
-    // console.log('Unpausing game')
     startClock();
     CACHE.pauseText.style.display = 'none';
   }
