@@ -78,7 +78,7 @@ let GAME = {};
 let enemyBlobs = []; //array of enemy objects
 let keyLog = []; //array of arrow keys currently pressed
 
-class Blob {
+class Blob { //investigate set and get methods as well as subclasses
   constructor() {
     this.obj = document.createElement('div');
 
@@ -100,10 +100,23 @@ class Blob {
       this.top -= this.size;
     }
     this.direction = angle + Math.PI - Math.PI/8 + Math.random() * Math.PI/8; //angle (measured from 0 radians = horizontal -> down) that the blob is travelling in
+    this.AIState = 'Passive';
+    this.directionChangeChance = 1;
+    this.targetDirection = this.direction;
+    this.currentTurningCircle = 0; //no turning
+    //AI behaviour states:
+    //Passive - default / ignores the player completely & moves in a straight line
+    //wandering - ignores the player completely & moves randomly
+    //Tracking - hones-in and follows the player
+    //Fleeing - deliberately moves away from the player
+    //Orbiting - circle's around the player
+    //Striking - lunges straight at the player and unable to change direction
+
+
     this.hasEnteredWindow = false;
 
     this.id = 'b' + (Math.random() + this.speed + this.size + this.direction); //pseudo random number lol
-    if (PLAYER) {
+    if (PLAYER) { //Player blob has been spawned (currently a hack catch-all)
       if (Math.floor(Math.random() * GAME.specialSpawnChance) < 1) {
         //SPECIAL BLOB
         this.reward = 2; //specials are worth double!
@@ -120,23 +133,28 @@ class Blob {
             this.obj.style.boxShadow = '0px 0px 10px red';
             this.size *= 1.5; //50% bigger
             this.speed *= 0.8; //20% slower
+            this.AIState = 'tracking';
           } else if (randRoll < 5) {
             this.type = 'meteor'; //burns the player to make them smaller!
             this.color = '#ffff55'; //orange-red
             this.speed = Math.max(Math.min(this.speed * 1.5, 300/FPS), 150/FPS); //max speed 300px/s, min speed 150px/s;
             this.reward = -1; //it takes away from you!
             this.size *= 0.8; //20% smaller
+            this.AIState = 'tracking';
           } else if (randRoll < 9) {
             this.type = 'hawk'; //circles the player - lunges in when close!
             this.color = '#aaaa55'; //gross greeny-gold
             this.size = Math.min(Math.max(this.size * 1.2, 0.95 * PLAYER.size), 1.5 * PLAYER.size); //will atleast almost always be as big as the player
             this.baseSpeed = this.speed; //for lunging purposes
             this.isLunging = false; //for lunging purposes
+            this.hasScopedPlayer = false;
+            this.strikeDirection = this.direction;
           } else {
             this.type = 'tracker'; //tracks the player as opposed to going in a straight line
             this.color = '#ff5555'; //some kind of red it seems
             this.speed = Math.min(this.speed, 120/FPS); //trackers can never be faster than 120px/s
             this.size = Math.min(1.2 * this.size, 1.2 * PLAYER.size); //20% larger, but not more than 20% bigger than the player
+            this.AIState = 'tracking';
           }
         } else {
           //passive blobs
@@ -216,40 +234,70 @@ class Blob {
       } else if (this.type==='hawk') {
         //Hawks are passive until the player comes near, then they will circle around and finally strike!
         let maxTurningCircle = 360/FPS * Math.PI/180; //hawks can turn tight 360deg/s circles!
-        if (PLAYER.size > this.size) {
-          //If the player is bigger than the hawk, it will ignore the player and be passive
-          newAngle = currentAngle;
-        } else {
-          if (this.isLunging) {
-            //Hawk is lunging, continue in straight line -> cannot correct its course!
-            newAngle = currentAngle;
-            if (dist > Math.min(150 + 1.5 * (PLAYER.size + this.size), 750)) {
-              //Lunge missed the player
-              this.isLunging = false;
-            }
-          } else if (dist < Math.min(100 + (PLAYER.size + this.size), 500)) {
-            //player is within strike distance - turn to lunge!
-            this.speed = this.baseSpeed * 2;
-            newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
-            if (Math.abs(currentAngle - newAngle) < Math.PI/90) {
-              //if heading in approximately the player's direction, start lunging
-              this.isLunging = true;
-            }
-          } else if (dist < Math.min(50 + 0.5 * (PLAYER.size + this.size), 250)) {
-            //Is really close, but may not be facing the right way - lunge!
-            this.speed = this.baseSpeed * 2;
-            newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
-            this.isLunging = true;
-          } else if (dist < Math.min(200 + 2 * (PLAYER.size + this.size), 1000)) {
-            //hawk is aware of player and begins to circle in - anticlockwise direction only (for now...)
-            this.speed = this.baseSpeed * 1.25; //speed up slightly
-            let adjProposedAngle = proposedAngle + 80 * Math.PI/180 * Math.sign(Math.cos(proposedAngle - currentAngle));
-            newAngle = computeTurningCircle(currentAngle,adjProposedAngle,maxTurningCircle);
+        this.speed = this.baseSpeed
+        if (this.AIState != 'striking') {
+          this.strikeDirection = proposedAngle;
+        }
+
+        if (this.hasScopedPlayer && (PLAYER.size > this.size)) {
+          //Has giotten close to the player and scoped it out and is smaller than the player - FLEE!
+          this.AIState = 'fleeing';
+          maxTurningCircle = 180/FPS * Math.PI/180; //hawks can only turn 60deg/s when casually flying.
+          newAngle = computeTurningCircle(currentAngle,proposedAngle+Math.PI,maxTurningCircle);
+
+        } else if ((dist > 300 + (PLAYER.size + this.size)/2)) {
+          //If the player is far away, it will ignore the player and casually glide around the screen
+          this.AIState = 'wandering';
+
+          if (Math.floor(Math.random()*this.directionChangeChance)<1) {
+            //pick a new direction
+            this.directionChangeChance = Math.random() * 3 * FPS; //turn for approx 3s on average
+            this.targetDirection = (Math.random()-0.5)*Math.PI/2+currentAngle; //up to 90degree turn
+            this.currentTurningCircle = Math.random() * 60/FPS * Math.PI/180 //up to 30deg/s
+          } 
+          newAngle = computeTurningCircle(currentAngle,this.targetDirection,this.currentTurningCircle);
+          
+        } else if (dist > 200 + (PLAYER.size + this.size)/2) {
+          //If the player is kind of close, it will begin curiously tracking to check it out
+          this.AIState = 'tracking';
+          maxTurningCircle = 180/FPS * Math.PI/180; //sharp turn from curiosity.
+          newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
+
+        } else if (dist > 100 + (PLAYER.size + this.size)/2) {
+          //Close to the player - size has been assessed. If Hawk is smaller, turn and flee. If hawk is bigger, begin circling and prepare to strike!
+          this.hasScopedPlayer = true;
+          this.speed = this.baseSpeed * 1.25; //speed up slightly
+          if (PLAYER.size > this.size) {
+            this.AIState = 'fleeing';
+            maxTurningCircle = 180/FPS * Math.PI/180; //hawks can turn 180deg/s when fleeing or becoming alert.
+            newAngle = computeTurningCircle(currentAngle,proposedAngle+Math.PI,maxTurningCircle);
           } else {
-            //player is not near -> carry on as usual
-            this.speed = this.baseSpeed;
-            newAngle = currentAngle;
+            //begin circling
+            this.AIState = 'orbiting';
+            maxTurningCircle = 180/FPS * Math.PI/180; //hawks can turn 180deg/s when fleeing or becoming alert.
+
+            let adjProposedAngle = proposedAngle + (Math.PI/2 - 10 *Math.random() * Math.PI/180) * Math.sign(currentAngle - proposedAngle);
+            newAngle = computeTurningCircle(currentAngle,adjProposedAngle,maxTurningCircle);
           }
+
+        } else if (dist > 50 + (PLAYER.size + this.size)/2) {
+          //very clsoe, turn toward the play to strike!
+          this.AIState = 'tracking';
+          this.speed = this.baseSpeed * 1.75; //speed up a lot
+          maxTurningCircle = 360/FPS * Math.PI/180; //sharp turn from curiosity.
+          newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
+
+        } else {
+          //default straight line lunge if close to player
+          this.speed = this.baseSpeed * 2.5; //speed up a lot
+          this.AIState = 'striking';
+          maxTurningCircle = 360/FPS * Math.PI/180; //hawks can turn 180deg/s when fleeing or becoming alert.
+          newAngle = computeTurningCircle(currentAngle,this.strikeDirection,maxTurningCircle);
+
+          console.log('Current direction: '+ currentAngle)
+          console.log('Proposed direction: '+ proposedAngle)
+          console.log('Strike direction: '+ this.strikeDirection)
+          console.log('New direction: '+ newAngle)
         }
 
       } else if (this.type==='tracker') {
@@ -258,9 +306,11 @@ class Blob {
         
         if ((this.size >= 0.95*PLAYER.size) || (dist + PLAYER.size/2 > CACHE.WINDOWWIDTH/2)) {
           //Tracker is approx. bigger than player, or far away - pursue
+          this.AIState = 'tracking';
           newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
         } else {
           //Tracker is smaller than player and close by - flee!!
+          this.AIState = 'fleeing';
           newAngle = computeTurningCircle(currentAngle,proposedAngle+Math.PI,maxTurningCircle);
         }
 
@@ -731,6 +781,48 @@ function computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle) {
   } else { //dA === 0
     //is already on target trajectory: Do nothing, maintain current path
     return currentAngle;
+  }
+}
+
+function determineTurningDirection(currentAngle,angleToPlayer,rotationAngle) {
+  //Computes whether the blob is should turn left, right, or straight to come into an orbit around the player.
+  //WARNING: Heavy trigonometry at play in this function; the mathematics were worked-out on paper.
+  
+  //ALL ANGLES ARE IN RADIANS (360 degrees = 2PI radians)
+
+  //Shift all angles to be within one full revolution, offset to be at right angles to player(PI/2->5PI/2), for reasonable comparison to each other
+  while (currentAngle > 2*Math.PI + rotationAngle) {
+    currentAngle -= 2*Math.PI;
+  }
+  while (currentAngle < rotationAngle) {
+    currentAngle += 2*Math.PI;
+  }
+  while (angleToPlayer > 2*Math.PI + rotationAngle) {
+    angleToPlayer -= 2*Math.PI;
+  }
+  while (angleToPlayer < rotationAngle) {
+    angleToPlayer += 2*Math.PI;
+  }
+
+  let dA = currentAngle - angleToPlayer; //difference in blob's current trajectory and the trajectory it wants to be on
+
+  //Determine what direction the blob wants to turn
+  if (((dA > 0) && (dA < Math.PI)) || ((dA > -2*Math.PI) && (dA < -Math.PI))) {
+    console.log('left')
+
+    //is turning LEFT
+    return 'left';
+  } else if (((dA > Math.PI) && (dA < 2*Math.PI)) || ((dA > -Math.PI) && (dA < 0))) {
+    //3pi/2 < x < 5pi/2     ||    -pi/2 < x < pi/2
+    console.log('right')
+
+    //needs to turn RIGHT
+    return 'right';
+    
+  } else {
+    //is heading in a straight line away from the player
+    //randomly choose to begin turning left or right
+    return 'straight'
   }
 }
 
