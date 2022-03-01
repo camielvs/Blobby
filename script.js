@@ -513,6 +513,7 @@ function initialisePlayer() {
   PLAYER.size = 10; //player diameter in pixels
   PLAYER.type = 'normal';
   PLAYER.color = 'darkgrey';
+  PLAYER.decayRate = 0.998**(1/FPS) //0.2% per second
 }
 
 function loadUI() {
@@ -524,7 +525,7 @@ function loadUI() {
   CACHE.startupWindow.style.opacity = '1';
 
   CACHE.hintText.innerText = `Hint: ${getRandomHint()}`;
-  CACHE.winSizeText.innerText = `Reach a size of ${Math.round(GAME.winSize*100)/100}px to win.`
+  CACHE.winSizeText.innerText = `Your blob decays over time.\nReach a size of ${Math.round(GAME.winSize*100)/100}px to win.`
 }
 
 function getRandomHint() {
@@ -666,6 +667,9 @@ function gameEngine() {
   enemyBlobs.forEach(b=>{
     checkCollisions(b);
   });
+
+  PLAYER.size *= PLAYER.decayRate;
+  PLAYER.size = Math.max(PLAYER.size,5);
   
   //check win
   if (PLAYER.size > GAME.winSize) {
@@ -714,7 +718,7 @@ function checkCollisions(blob) {
       pArea += bArea/4 * blob.reward;
 
       let sizeBefore = PLAYER.size;
-      PLAYER.size = Math.max(Math.floor(Math.sqrt(pArea * 4 / Math.PI) * 100)/100,5); //to 2 decimal places, no smaller than 5px
+      PLAYER.size = Math.max(Math.sqrt(pArea * 4 / Math.PI),5); //to 2 decimal places, no smaller than 5px
       
       //re-adjust player location so size increases from the centre
       PLAYER.left -= (PLAYER.size - sizeBefore)/2;
@@ -784,48 +788,6 @@ function computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle) {
   }
 }
 
-function determineTurningDirection(currentAngle,angleToPlayer,rotationAngle) {
-  //Computes whether the blob is should turn left, right, or straight to come into an orbit around the player.
-  //WARNING: Heavy trigonometry at play in this function; the mathematics were worked-out on paper.
-  
-  //ALL ANGLES ARE IN RADIANS (360 degrees = 2PI radians)
-
-  //Shift all angles to be within one full revolution, offset to be at right angles to player(PI/2->5PI/2), for reasonable comparison to each other
-  while (currentAngle > 2*Math.PI + rotationAngle) {
-    currentAngle -= 2*Math.PI;
-  }
-  while (currentAngle < rotationAngle) {
-    currentAngle += 2*Math.PI;
-  }
-  while (angleToPlayer > 2*Math.PI + rotationAngle) {
-    angleToPlayer -= 2*Math.PI;
-  }
-  while (angleToPlayer < rotationAngle) {
-    angleToPlayer += 2*Math.PI;
-  }
-
-  let dA = currentAngle - angleToPlayer; //difference in blob's current trajectory and the trajectory it wants to be on
-
-  //Determine what direction the blob wants to turn
-  if (((dA > 0) && (dA < Math.PI)) || ((dA > -2*Math.PI) && (dA < -Math.PI))) {
-    console.log('left')
-
-    //is turning LEFT
-    return 'left';
-  } else if (((dA > Math.PI) && (dA < 2*Math.PI)) || ((dA > -Math.PI) && (dA < 0))) {
-    //3pi/2 < x < 5pi/2     ||    -pi/2 < x < pi/2
-    console.log('right')
-
-    //needs to turn RIGHT
-    return 'right';
-    
-  } else {
-    //is heading in a straight line away from the player
-    //randomly choose to begin turning left or right
-    return 'straight'
-  }
-}
-
 function loseGame(blob) {
   stopClock();
   CACHE.backgroundMusic.pause();
@@ -835,7 +797,7 @@ function loseGame(blob) {
   GAME.end = true;
   CACHE.gameClock.innerText = `RESTART GAME`;
   CACHE.gameOverWindow.style.display = 'flex';
-  CACHE.resultsText.innerText = `YOU LOSE\nTime survived: ${Math.floor(GAME.timeElapsed * 10)/10}s\nYour size: ${PLAYER.size}\nBlob size: ${Math.floor(blob.size*100)/100}`;
+  CACHE.resultsText.innerText = `YOU LOSE\nTime survived: ${Math.floor(GAME.timeElapsed * 10)/10}s\nYour size: ${Math.floor(PLAYER.size * 100)/100}\nBlob size: ${Math.floor(blob.size*100)/100}`;
 }
 
 function winGame() {
@@ -883,7 +845,7 @@ function render() {
 
   //HEADER
   CACHE.blobsEaten.innerText = `Blobs eaten: ${GAME.blobsEaten}`;
-  CACHE.playerSize.innerText = `Size: ${PLAYER.size}px`;
+  CACHE.playerSize.innerText = `Size: ${Math.floor(PLAYER.size * 100)/100}px`;
 
   if (!GAME.end) {
     displayClock(); //Don't update the clock if the game has ended because it must read "RESTART"
