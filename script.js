@@ -504,6 +504,8 @@ function resetGamestate() {
     spawnChanceReduction: 0.99 ** (1/FPS), //amount the chance above changes by each frame (based on 1% per second)
     specialSpawnChance: 16, //1/16 chance of a blob spawning with special properties
     specialChanceReduction: 0.99 ** (1/FPS), //amount the chance above changes by each frame (based on 1% per second)
+    spawnCounter: 0,
+    spawnThreshold: 1000,
   }
 
   PLAYER = new Blob(); //player data obj at top, left coordinates
@@ -625,9 +627,19 @@ function gameEngine() {
 
   //Spawn enemy blobs at random
   if (enemyBlobs.length < GAME.MAXENEMYBLOBS) {
-    if (Math.floor(Math.random() * GAME.enemySpawnChance < 1)) {
+    let spawnRoll = Math.floor(Math.random() * GAME.enemySpawnChance);
+    if (spawnRoll < 1) {
       enemyBlobs.push(new Blob);
       CACHE.blobSpawnSound.play();
+    } else {
+      //catch leftover from spawn roll and add up - when reaches a set value (1000, then 2000, then 3000 etc?) spawn a blob (or barrage?) - to stop long periods of time with no spawning
+      GAME.spawnCounter += spawnRoll - 1;
+      if (GAME.spawnCounter > GAME.spawnThreshold) {
+        enemyBlobs.push(new Blob);
+        CACHE.blobSpawnSound.play();
+        GAME.spawnThreshold += GAME.spawnThreshold;
+        //perhaps spawn different blobs/bosses at each threshold?
+      }
     }
   }
 
