@@ -525,7 +525,7 @@ function initialisePlayer() {
   PLAYER.size = 10; //player diameter in pixels
   PLAYER.type = 'normal';
   PLAYER.color = 'darkgrey';
-  PLAYER.decayRate = 0.998**(1/FPS) //0.2% per second
+  PLAYER.decayRate = 0.997**(1/FPS) //0.2% per second
 }
 
 function loadUI() {
@@ -681,7 +681,7 @@ function gameEngine() {
   });
 
   PLAYER.size *= PLAYER.decayRate; 
-  if (PLAYER.size <=9.90) {
+  if (PLAYER.size <= 5) {
     loseGame(PLAYER);
   } else {
     PLAYER.size = Math.max(PLAYER.size,5);
