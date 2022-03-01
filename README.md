@@ -1,4 +1,4 @@
-<img src="assets/title.png">
+<img src="assets/screenshots/title.png">
 
 > Made by Camiel (2022).
 
@@ -20,7 +20,7 @@ There is no setup involved with Blobby and there are no game settings to customi
 
 To start the game, click the mouse in the game screen, or press SPACEBAR.
 
-<img src="assets/setupScreen.png">
+<img src="assets/screenshots/setupScreen.png">
 
 ## HOW TO PLAY
 
@@ -29,11 +29,11 @@ Your blob can be moved by  using the arrow keys or WASD on your keyboard. You ar
 
 The game can be paused at any time by clicking on the timer in the menubar or by pressing SPACEBAR.
 
-<img src="assets/gamePaused.png">
+<img src="assets/screenshots/gamePaused.png">
 
 ### GAME OPTIONS
 Currently the menu bar across the top of the game screen has limited functionality.
-<img src="assets/menubar.png">
+<img src="assets/screenshots/menubar.png">
 
 - The two left-most options display some game statistics, but do not do anything when clicked.
 - The game clock in the middle displays how much time has elapsed and will pause/unpause the game if clicked.
@@ -44,9 +44,9 @@ Currently the menu bar across the top of the game screen has limited functionali
 ## GAMEPLAY
 When you unpause the game the timer and music will start and the introductary text will fade out. You will then be free to move your blob with your keyboard.
 
-As time progresses, green blobs of various sizes will cross the game window. The size of these blobs scales with your own size.
+As time progresses, green blobs of various sizes will cross the game window. The size of these blobs scales with your own size. Additionally, your blob size will decay over time.
 
-<img src="assets/gameplay.png">
+<img src="assets/screenshots/gameplay.png">
 
 You are be able to move around to avoid or collide with these blobs and interact with them. If you collide with a blob that is smaller than you, you will become a little bit bigger.
 
@@ -54,7 +54,7 @@ Occasionally a special blob of a different colour will appear. These blobs have 
 
 As time progresses the spawn rate of blobs and special blobs will increase, making the game more hectic!
 
-<img src="assets/gameOver.png">
+<img src="assets/screenshots/gameOver.png">
 
 The game ends when you either reach 200px in size, or collide with a blob bigger than you.
 
@@ -95,10 +95,10 @@ There are a large number of possibilities to further the development of this gam
 - UI scaling for larger/smaller devices.
 - Proper overhang rendering for large blobs as they enter/exit the game board.
 - Temporary powerups (speed boost/invincibility etc).
-- Custom game modes that increase difficulty, e.g. hard mode/decay mode/mutation mode.
+- Custom game modes that increase difficulty, e.g. hard mode/~~decay mode~~/mutation mode.
 - More blob types to discover (e.g. ink, rainbow, toxic, heart).
 - Refine AI and pathing for aggressive blobs.
-- Ability for blobs to morph together when they collide.
+- Ability for blobs to morph together and bounce when they collide.
 - Animated effects when blobs move and interact.
 - Custom music and more variety in background tracks.
 - Refactor code for readability and enhanced functionality.
