@@ -405,19 +405,20 @@ function loadCache() {
     playerSize: document.getElementById('pSize'),
     gameClock: document.getElementById('gameClock'),
     help: document.getElementById('help'),
-    muteBtn: document.getElementById('mute'),
+    muteSBtn: document.getElementById('muteSound'),
+    muteMBtn: document.getElementById('muteMusic'),
 
 
     //AUDIO
-    gameWinMusic: new Audio('assets/gameWinMusic.wav'),
-    gameLoseMusic: new Audio('assets/gameLoseMusic.mp3'),
-    gameLoseSound: new Audio('assets/gameLoseSound.wav'),
-    blobSpawnSound: new Audio('assets/blobSpawn.wav'),
-    blobEatingSound: new Audio('assets/blobEaten.wav'),
-    pickupPowerupSound: new Audio('assets/pickupPowerup.wav'),
-    pauseGameSound: new Audio('assets/gamePause.wav'),
-    menuHoverSound: new Audio('assets/menuHover.wav'),
-    backgroundMusic: new Audio('assets/backgroundMusic.wav'),
+    gameWinMusic: new Audio('assets/audio/gameWinMusic.wav'),
+    gameLoseMusic: new Audio('assets/audio/gameLoseMusic.mp3'),
+    gameLoseSound: new Audio('assets/audio/gameLoseSound.wav'),
+    blobSpawnSound: new Audio('assets/audio/blobSpawn.wav'),
+    blobEatingSound: new Audio('assets/audio/blobEaten.wav'),
+    pickupPowerupSound: new Audio('assets/audio/pickupPowerup.wav'),
+    pauseGameSound: new Audio('assets/audio/gamePause.wav'),
+    menuHoverSound: new Audio('assets/audio/menuHover.wav'),
+    backgroundMusic: new Audio('assets/audio/backgroundMusic.wav'),
 
     WINDOWHEIGHT: 800, //px
     WINDOWWIDTH: 800, //px
@@ -495,7 +496,8 @@ function resetGamestate() {
     end: false,
     winSize: CACHE.WINDOWWIDTH/4,
     paused: true,
-    muted: false,
+    musicMuted: false,
+    soundMuted: false,
     blobsEaten: 0, //nom nom
     timeElapsed: 0, //seconds
 
@@ -826,7 +828,6 @@ function loseGame(blob) {
   CACHE.gameLoseMusic.currentTime = 0;
   CACHE.gameLoseMusic.play();
   GAME.end = true;
-  CACHE.gameClock.innerText = `RESTART GAME`;
   CACHE.gameOverWindow.style.display = 'flex';
   CACHE.resultsText.innerText = `YOU LOSE\nTime survived: ${Math.floor(GAME.timeElapsed * 10)/10}s\nYour size: ${Math.floor(PLAYER.size * 100)/100}\nBlob size: ${Math.floor(blob.size*100)/100}`;
 }
@@ -837,7 +838,7 @@ function winGame() {
   CACHE.gameWinMusic.currentTime = 0;
   CACHE.gameWinMusic.play();
   GAME.end = true;
-  CACHE.gameClock.innerText = `RESTART GAME`;
+  CACHE.gameClock.innerText = `RESTART`;
   CACHE.gameOverWindow.style.display = 'flex';
   CACHE.resultsText.innerText = `YOU WIN!\nBlobs eaten: ${GAME.blobsEaten}\nTime taken: ${Math.floor(GAME.timeElapsed * 10)/10}s`;
 }
@@ -878,13 +879,16 @@ function render() {
   CACHE.blobsEaten.innerText = `Blobs eaten: ${GAME.blobsEaten}`;
   CACHE.playerSize.innerText = `Size: ${Math.floor(PLAYER.size * 100)/100}px`;
 
-  if (!GAME.end) {
-    displayClock(); //Don't update the clock if the game has ended because it must read "RESTART"
-  }
+  displayClock(); //Don't update the clock if the game has ended because it must read "RESTART"
+  
 }
 
 function displayClock() {
-  CACHE.gameClock.innerText = `${Math.floor(GAME.timeElapsed * 10)/10}s`;
+  if (!GAME.end) {
+    CACHE.gameClock.innerText = `${Math.floor(GAME.timeElapsed * 10)/10}s`;  
+  } else {
+    CACHE.gameClock.innerText = `RESTART`;
+  }
 }
 
 /*USER INTERACTION*/
@@ -906,44 +910,68 @@ function clickTracker(ev) {
       //pause game
       pauseGame();
     }
-  } else if (ev.target.id === "mute") {
+  } else if (ev.target.id === "muteSound") {
     muteSFX();
+  } else if (ev.target.id === "muteMusic") {
+    muteMusic();
+  }
+}
+
+function muteMusic() {
+  GAME.musicMuted = !GAME.musicMuted;
+
+  if (GAME.musicMuted) {
+    //MUTE ALL MUSIC
+    // CACHE.muteMBtn.innerText = 'Unmute M';
+    // CACHE.muteMBtn.style.color = 'firebrick';
+    // CACHE.muteMBtn.style.border = '3px solid firebrick';
+    CACHE.muteMBtn.style.backgroundImage = 'url(assets/ui/music-muted-white.png)';
+
+    CACHE.gameWinMusic.muted = true;
+    CACHE.gameLoseMusic.muted = true;
+    CACHE.backgroundMusic.muted = true;
+  } else {
+    //UNMUTE ALL MUSIC
+    // CACHE.muteMBtn.innerText = 'Mute M';
+    // CACHE.muteMBtn.style.color = 'white';
+    // CACHE.muteMBtn.style.border = '0px solid firebrick';
+    CACHE.muteMBtn.style.backgroundImage = 'url(assets/ui/music-unmuted-white.png)';
+
+    CACHE.gameWinMusic.muted = false;
+    CACHE.gameLoseMusic.muted = false;
+    CACHE.backgroundMusic.muted = false;
   }
 }
 
 function muteSFX() {
-  GAME.muted = !GAME.muted;
+  GAME.soundMuted = !GAME.soundMuted;
 
-  if (GAME.muted) {
-    //MUTE ALL AUDIO
-    CACHE.muteBtn.innerText = 'Unmute';
-    CACHE.muteBtn.style.color = 'firebrick';
-    CACHE.muteBtn.style.border = '3px solid firebrick';
+  if (GAME.soundMuted) {
+    //MUTE ALL SOUNDEFFECTS
+    // CACHE.muteSBtn.innerText = 'Unmute S';
+    // CACHE.muteSBtn.style.color = 'firebrick';
+    // CACHE.muteSBtn.style.border = '3px solid firebrick';
+    CACHE.muteSBtn.style.backgroundImage = 'url(assets/ui/sound-muted-white.png)';
 
-    CACHE.gameWinMusic.muted = true;
-    CACHE.gameLoseMusic.muted = true;
     CACHE.gameLoseSound.muted = true;
     CACHE.blobSpawnSound.muted = true;
     CACHE.blobEatingSound.muted = true;
     CACHE.pickupPowerupSound.muted = true;
     CACHE.pauseGameSound.muted = true;
     CACHE.menuHoverSound.muted = true;
-    CACHE.backgroundMusic.muted = true;
   } else {
-    //UNMUTE ALL AUDIO
-    CACHE.muteBtn.innerText = 'Mute';
-    CACHE.muteBtn.style.color = 'white';
-    CACHE.muteBtn.style.border = '0px solid firebrick';
+    //UNMUTE ALL SOUNDEFFECTS
+    // CACHE.muteSBtn.innerText = 'Mute S';
+    // CACHE.muteSBtn.style.color = 'white';
+    // CACHE.muteSBtn.style.border = '0px solid firebrick';
+    CACHE.muteSBtn.style.backgroundImage = 'url(assets/ui/sound-unmuted-white.png)';
 
-    CACHE.gameWinMusic.muted = false;
-    CACHE.gameLoseMusic.muted = false;
     CACHE.gameLoseSound.muted = false;
     CACHE.blobSpawnSound.muted = false;
     CACHE.blobEatingSound.muted = false;
     CACHE.pickupPowerupSound.muted = false;
     CACHE.pauseGameSound.muted = false;
     CACHE.menuHoverSound.muted = false;
-    CACHE.backgroundMusic.muted = false;
   }
 }
 
