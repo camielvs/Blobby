@@ -241,9 +241,22 @@ class Blob { //investigate set and get methods as well as subclasses
 
         if (this.hasScopedPlayer && (PLAYER.size > this.size)) {
           //Has giotten close to the player and scoped it out and is smaller than the player - FLEE!
-          this.AIState = 'fleeing';
-          maxTurningCircle = 180/FPS * Math.PI/180; //hawks can only turn 60deg/s when casually flying.
-          newAngle = computeTurningCircle(currentAngle,proposedAngle+Math.PI,maxTurningCircle);
+          if (currentAngle > proposedAngle + (Math.PI * 0.9) || currentAngle < proposedAngle - (Math.PI * 0.9)) {
+            //player is effectively behind the hawk - it relaxes
+            this.AIState = 'wandering';
+
+            if (Math.floor(Math.random()*this.directionChangeChance)<1) {
+              //pick a new direction
+              this.directionChangeChance = Math.random() * 3 * FPS; //turn for approx 3s on average
+              this.targetDirection = (Math.random()-0.5)*Math.PI/2+currentAngle; //up to 90degree turn
+              this.currentTurningCircle = Math.random() * 60/FPS * Math.PI/180 //up to 30deg/s
+            } 
+            newAngle = computeTurningCircle(currentAngle,this.targetDirection,this.currentTurningCircle);
+          } else {
+            this.AIState = 'fleeing';
+            maxTurningCircle = 180/FPS * Math.PI/180; //hawks can only turn 60deg/s when casually flying.
+            newAngle = computeTurningCircle(currentAngle,proposedAngle+Math.PI,maxTurningCircle);
+          }
 
         } else if ((dist > 300 + (PLAYER.size + this.size)/2)) {
           //If the player is far away, it will ignore the player and casually glide around the screen
@@ -266,6 +279,10 @@ class Blob { //investigate set and get methods as well as subclasses
         } else if (dist > 100 + (PLAYER.size + this.size)/2) {
           //Close to the player - size has been assessed. If Hawk is smaller, turn and flee. If hawk is bigger, begin circling and prepare to strike!
           this.hasScopedPlayer = true;
+          this.directionChangeChance = 1;
+          this.targetDirection = this.direction;
+          this.currentTurningCircle = 0;
+
           this.speed = this.baseSpeed * 1.25; //speed up slightly
           if (PLAYER.size > this.size) {
             this.AIState = 'fleeing';
@@ -293,11 +310,6 @@ class Blob { //investigate set and get methods as well as subclasses
           this.AIState = 'striking';
           maxTurningCircle = 360/FPS * Math.PI/180; //hawks can turn 180deg/s when fleeing or becoming alert.
           newAngle = computeTurningCircle(currentAngle,this.strikeDirection,maxTurningCircle);
-
-          console.log('Current direction: '+ currentAngle)
-          console.log('Proposed direction: '+ proposedAngle)
-          console.log('Strike direction: '+ this.strikeDirection)
-          console.log('New direction: '+ newAngle)
         }
 
       } else if (this.type==='tracker') {
@@ -668,8 +680,15 @@ function gameEngine() {
     checkCollisions(b);
   });
 
-  PLAYER.size *= PLAYER.decayRate;
-  PLAYER.size = Math.max(PLAYER.size,5);
+  PLAYER.size *= PLAYER.decayRate; 
+  if (PLAYER.size <=9.90) {
+    loseGame(PLAYER);
+  } else {
+    PLAYER.size = Math.max(PLAYER.size,5);
+  }
+
+  //include "boss spawns" at set milestones (20px, 40px, 80px & 160px)
+
   
   //check win
   if (PLAYER.size > GAME.winSize) {
