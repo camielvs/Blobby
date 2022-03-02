@@ -525,7 +525,10 @@ function initialisePlayer() {
   PLAYER.top = pTextTop + pTextHeight/2 - PLAYER.size/2;
   PLAYER.left = pTextLeft + pTextWidth/2;
 
-  PLAYER.speed = 100/FPS; //100px/s, converted into px/frame
+  PLAYER.maxSpeed = 100/FPS; //100px/s, converted into px/frame
+  PLAYER.speed = 0; //current speed
+  PLAYER.direction = null; //direction player is moving in - angle from horizontal (+x)
+  // PLAYER.maxTurning = 8*Math.PI/FPS; //two full circles per second
   PLAYER.size = 10; //player diameter in pixels
   PLAYER.type = 'normal';
   PLAYER.color = 'darkgrey';
@@ -652,9 +655,7 @@ function gameEngine() {
   GAME.specialSpawnChance *= GAME.specialChanceReduction;
   GAME.specialSpawnChance = Math.max(GAME.specialSpawnChance, 3); //bottoms out at 1 spawn every 3 blobs
 
-  for (key of keyLog) {
-    movePlayer(key);
-  }
+  movePlayer();
 
   enemyBlobs.forEach(b=>{
     b.move();
@@ -714,21 +715,55 @@ function gameEngine() {
 }
 
 /*GAME HELPER FUNCTIONS*/
-function movePlayer(keyPressed) {
-  switch (keyPressed) {
-    case 'ArrowUp': //UP
-      PLAYER.top = Math.max(PLAYER.top - PLAYER.speed,0);
-    break;
-    case 'ArrowLeft': //LEFT
-      PLAYER.left = Math.max(PLAYER.left - PLAYER.speed,0);
-    break;
-    case 'ArrowDown': //DOWN
-      PLAYER.top = Math.min(PLAYER.top + PLAYER.speed,Number(CACHE.gameWindow.style.height.split('px')[0])-PLAYER.size);
-    break;
-    case 'ArrowRight': //RIGHT
-      PLAYER.left = Math.min(PLAYER.left + PLAYER.speed,Number(CACHE.gameWindow.style.width.split('px')[0])-PLAYER.size);
-    break;
+function movePlayer() {
+  let currentDir = PLAYER.direction;
+  let directionX = 0;
+  let directionY = 0;
+  //Resolve keylog
+  for (key of keyLog) {
+    switch (key) {
+      case 'ArrowUp': //UP
+        directionY -= 1;
+        break;
+      case 'ArrowLeft': //LEFT
+        directionX -= 1;
+        break;
+      case 'ArrowDown': //DOWN
+        directionY += 1;
+        break;
+      case 'ArrowRight': //RIGHT  
+        directionX += 1;
+      break;
+    }
   }
+  //compute direction angle
+  let newDir = Math.atan(directionY/directionX);
+  if (directionX < 0) {
+    newDir += Math.PI;
+  }
+  //determine if not moving
+  if (directionX === 0 && directionY === 0) {
+    PLAYER.direction = null;
+    PLAYER.speed = 0;
+  } else {
+    //move play in direction of angle - could do acceleration in future
+    PLAYER.speed = PLAYER.maxSpeed;
+    if (PLAYER.direction === null) {
+      //moving from stopped
+      PLAYER.direction = newDir;
+    } else {
+      // PLAYER.direction = computeTurningCircle(currentDir,newDir,PLAYER.maxTurning);
+      PLAYER.direction = newDir;
+    }
+  }
+  //limit to borders of the game window
+  PLAYER.top = Math.max(Math.min(
+    PLAYER.top + Math.sin(PLAYER.direction) * PLAYER.speed,
+    CACHE.WINDOWHEIGHT-PLAYER.size),0);
+
+  PLAYER.left = Math.max(Math.min(
+    PLAYER.left + Math.cos(PLAYER.direction) * PLAYER.speed,
+    CACHE.WINDOWWIDTH-PLAYER.size),0);
 }
 
 function checkCollisions(blob) {
