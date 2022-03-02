@@ -508,6 +508,7 @@ function resetGamestate() {
     specialChanceReduction: 0.99 ** (1/FPS), //amount the chance above changes by each frame (based on 1% per second)
     spawnCounter: 0,
     spawnThreshold: 1000,
+    bossWaves: [0, 0, 0, 0, 0],
   }
 
   PLAYER = new Blob(); //player data obj at top, left coordinates
@@ -648,6 +649,9 @@ function gameEngine() {
     }
   }
 
+  //"Boss" spawns
+  checkBossWaves();
+
   //Compute new chances of spawning blobs as time progresses
   GAME.enemySpawnChance *= GAME.spawnChanceReduction;
   GAME.enemySpawnChance = Math.max(GAME.enemySpawnChance, 1/3 * FPS); //bottoms out at 3 spawns per second
@@ -701,8 +705,6 @@ function gameEngine() {
   } else {
     PLAYER.size = Math.max(PLAYER.size,5);
   }
-
-  //include "boss spawns" at set milestones (20px, 40px, 80px & 160px)
 
   
   //check win
@@ -854,6 +856,33 @@ function computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle) {
     //is already on target trajectory: Do nothing, maintain current path
     return currentAngle;
   }
+}
+
+function checkBossWaves() {
+  let spawnChanceTmp = GAME.specialSpawnChance;
+  GAME.specialSpawnChance = 1;
+  if (PLAYER.size > 20 && GAME.bossWaves[0] < 3) {
+    //Wave 1: 20px - 3 special blobs
+    GAME.bossWaves[0] += 1;
+    enemyBlobs.push(new Blob);
+    CACHE.blobSpawnSound.play();
+  } else if (PLAYER.size > 40 && GAME.bossWaves[1] < 5) {
+    //Wave 2: 40px - 5 special blobs
+    GAME.bossWaves[1] += 1;
+    enemyBlobs.push(new Blob);
+    CACHE.blobSpawnSound.play();
+  } else if (PLAYER.size > 80 && GAME.bossWaves[2] < 7) {
+    //Wave 2: 40px - 5 special blobs
+    GAME.bossWaves[2] += 1;
+    enemyBlobs.push(new Blob);
+    CACHE.blobSpawnSound.play();
+  } else if (PLAYER.size > 160 && GAME.bossWaves[3] < 9) {
+    //Wave 2: 40px - 5 special blobs
+    GAME.bossWaves[3] += 1;
+    enemyBlobs.push(new Blob);
+    CACHE.blobSpawnSound.play();
+  }
+  GAME.specialSpawnChance = spawnChanceTmp;
 }
 
 function loseGame(blob) {
