@@ -550,7 +550,7 @@ function initialisePlayer() {
   PLAYER.speedBoostDuration = 2 * FPS; //2s duration
   PLAYER.speedBoostCooldown = 10 * FPS + PLAYER.speedBoostDuration; //12s cooldown from use
   PLAYER.speedBoostTimer = 0;
-  PLAYER.speedBoostCooldownTimer = 0;
+  PLAYER.speedBoostCooldownTimer = PLAYER.speedBoostCooldown/2;
 }
 
 function useSpeedBoost() {
@@ -600,7 +600,7 @@ function loadUI() {
 
   CACHE.hintText.innerText = `Hint: ${getRandomHint()}`;
   CACHE.winSizeText.innerText = `Your blob decays over time.\nReach a size of ${Math.round(GAME.winSize*100)/100}px to win.`
-  CACHE.speedBoostInfo.innerText = 'Speed Boost Available. Press spacebar to activate.';
+  CACHE.speedBoostInfo.innerText = '';
   CACHE.speedBoostInfoContainer.style.display = 'none';
 }
 
