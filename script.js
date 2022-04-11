@@ -284,7 +284,7 @@ class Blob { //investigate set and get methods as well as subclasses
           this.currentTurningCircle = 0;
 
           this.speed = this.baseSpeed * 1.25; //speed up slightly
-          if (PLAYER.size > this.size) {
+          if (PLAYER.size > (0.95 + Math.random()/10 * this.size)) {
             this.AIState = 'fleeing';
             maxTurningCircle = 180/FPS * Math.PI/180; //hawks can turn 180deg/s when fleeing or becoming alert.
             newAngle = computeTurningCircle(currentAngle,proposedAngle+Math.PI,maxTurningCircle);
@@ -316,7 +316,7 @@ class Blob { //investigate set and get methods as well as subclasses
         //Turning circle of 120 degrees/s either direction
         let maxTurningCircle = 120/FPS * Math.PI/180;
         
-        if ((this.size >= 0.95*PLAYER.size) || (dist + PLAYER.size/2 > CACHE.WINDOWWIDTH/2)) {
+        if ((this.size >= (0.9 + Math.random()/5 * PLAYER.size)) || (dist + PLAYER.size/2 > CACHE.WINDOWWIDTH/2)) {
           //Tracker is approx. bigger than player, or far away - pursue
           this.AIState = 'tracking';
           newAngle = computeTurningCircle(currentAngle,proposedAngle,maxTurningCircle);
@@ -396,6 +396,9 @@ function loadCache() {
     yourBlobText: document.getElementById('yourBlobText'),
     winSizeText: document.getElementById('winSizeText'),
 
+    speedBoostInfo: document.getElementById('speedBoostInfo'),
+    speedBoostInfoContainer: document.getElementById('speedBoostInfoContainer'),
+
     gameOverWindow: document.getElementById('gameOverWindow'),
     resultsText: document.getElementById('gameResults'),
     pauseText: document.getElementById('pauseWindow'),
@@ -453,8 +456,14 @@ function loadCache() {
       } else if (GAME.starting) {
         //Game is reset - start game
         startGame();
-      } else {
+      } else if (!GAME.paused) {
         //Game has started - pause/pause
+        useSpeedBoost();
+      }
+    }
+
+    if (keyPressed === 'q') {
+      if (!GAME.end && !GAME.starting) {
         pauseGame();
       }
     }
@@ -494,7 +503,7 @@ function resetGamestate() {
   GAME = {
     starting: true,
     end: false,
-    winSize: CACHE.WINDOWWIDTH/4,
+    winSize: CACHE.WINDOWWIDTH/8,
     paused: true,
     musicMuted: false,
     soundMuted: false,
@@ -527,6 +536,7 @@ function initialisePlayer() {
   PLAYER.left = pTextLeft + pTextWidth/2;
 
   PLAYER.maxSpeed = 100/FPS; //100px/s, converted into px/frame
+  PLAYER.maxSpeedBase = PLAYER.maxSpeed;
   PLAYER.speed = 0; //current speed
   PLAYER.direction = null; //direction player is moving in - angle from horizontal (+x)
   // PLAYER.maxTurning = 8*Math.PI/FPS; //two full circles per second
@@ -534,6 +544,50 @@ function initialisePlayer() {
   PLAYER.type = 'normal';
   PLAYER.color = 'darkgrey';
   PLAYER.decayRate = 0.997**(1/FPS) //0.2% per second
+
+  PLAYER.speedBoostActive = false;
+  PLAYER.speedBoostAmount = 1.5; //player moves 50% faster while speed boost is active
+  PLAYER.speedBoostDuration = 2 * FPS; //2s duration
+  PLAYER.speedBoostCooldown = 10 * FPS + PLAYER.speedBoostDuration; //12s cooldown from use
+  PLAYER.speedBoostTimer = 0;
+  PLAYER.speedBoostCooldownTimer = 0;
+}
+
+function useSpeedBoost() {
+  if (!PLAYER.speedBoostActive && PLAYER.speedBoostCooldownTimer < 1) {
+    PLAYER.speedBoostActive = true;
+    PLAYER.speedBoostTimer = PLAYER.speedBoostDuration;
+    PLAYER.speedBoostCooldownTimer = PLAYER.speedBoostCooldown;
+  } else {
+    PLAYER.speedBoostActive = false;
+  }
+}
+
+function checkSpeedBoost() {
+  //check speedboost cooldown
+  if (PLAYER.speedBoostTimer > 0) {
+    PLAYER.speedBoostTimer -= 1
+    if (PLAYER.speedBoostTimer === 0) {
+      PLAYER.speedBoostActive = false;
+    }
+  }
+  
+  if (PLAYER.speedBoostCooldownTimer > 0) {
+    PLAYER.speedBoostCooldownTimer -= 1;
+    CACHE.speedBoostInfo.innerText = `Speed Boost Unavailable: ${Math.ceil(PLAYER.speedBoostCooldownTimer/FPS*10)/10}s remaining`;
+    if (PLAYER.speedBoostCooldownTimer === 0) {
+      CACHE.speedBoostInfo.innerText = 'Speed Boost Available. Press spacebar to activate.';
+    }
+  }
+}
+
+function applySpeedBoost() {
+  if (PLAYER.speedBoostActive) {
+    PLAYER.maxSpeed = PLAYER.maxSpeedBase * PLAYER.speedBoostAmount;
+    CACHE.speedBoostInfo.innerText = `Speed Boost Active: ${Math.ceil(PLAYER.speedBoostTimer/FPS*10)/10}s remaining`;
+  } else {
+    PLAYER.maxSpeed = PLAYER.maxSpeedBase;
+  }
 }
 
 function loadUI() {
@@ -546,6 +600,8 @@ function loadUI() {
 
   CACHE.hintText.innerText = `Hint: ${getRandomHint()}`;
   CACHE.winSizeText.innerText = `Your blob decays over time.\nReach a size of ${Math.round(GAME.winSize*100)/100}px to win.`
+  CACHE.speedBoostInfo.innerText = 'Speed Boost Available. Press spacebar to activate.';
+  CACHE.speedBoostInfoContainer.style.display = 'none';
 }
 
 function getRandomHint() {
@@ -572,7 +628,7 @@ function getRandomHint() {
     'Jumbo blobs are grey and are big and veeerrrryyyy slow.',
     'The chance for a blob to spawn increases with time.',
     'The chance for a special blob to spawn increases with time.',
-    'Consuming a special blob will typically grant additional size growth.',
+    'Consuming a special blob will usually grant additional size growth.',
     'There is a 1/512 base chance that any spawned blob will be radioactive.',
     'There can only ever be a maximum of 16 blobs on the screen at a time.',
     'The bigger you get, the bigger the blobs will get!',
@@ -611,6 +667,7 @@ function startGame() {
   //remove the startup UI
   fadeOutEffect(CACHE.startupWindow);
   GAME.starting = false;
+  CACHE.speedBoostInfoContainer.style.display = 'flex';
 
   //play some beats!
   CACHE.gameLoseMusic.pause();
@@ -659,6 +716,8 @@ function gameEngine() {
   GAME.specialSpawnChance *= GAME.specialChanceReduction;
   GAME.specialSpawnChance = Math.max(GAME.specialSpawnChance, 3); //bottoms out at 1 spawn every 3 blobs
 
+  checkSpeedBoost();
+  applySpeedBoost();
   movePlayer();
 
   enemyBlobs.forEach(b=>{
@@ -863,7 +922,7 @@ function checkBossWaves() {
   GAME.specialSpawnChance = 1;
   if (PLAYER.size > 20 && GAME.bossWaves[0] < 3) {
     //Wave 1: 20px - 3 special blobs
-    GAME.bossWaves[0] += 1;
+    GAME.bossWaves[0] += 1; //could do +1/FPS and spawn ever 0.5s or something
     enemyBlobs.push(new Blob);
     CACHE.blobSpawnSound.play();
   } else if (PLAYER.size > 40 && GAME.bossWaves[1] < 5) {

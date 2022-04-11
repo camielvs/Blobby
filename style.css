@@ -41,6 +41,10 @@ footer {
   height: 50px;
 }
 
+a {
+  color: white;
+}
+
 #topBar {
   display: flex;
   align-items: center;
@@ -197,4 +201,15 @@ footer {
 
 #pauseWindow > p {
   font-size: 3em;
+}
+
+#speedBoostInfoContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* align-items: center; */
+  /* text-align:center; */
+  /* position: absolute; */
+  z-index: 50;
 }

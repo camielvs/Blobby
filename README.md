@@ -9,7 +9,7 @@
 **Blobby** is a simple early 2000's Flash-style game of survival. You play as a small blob and must avoid all the big blobs around you while consuming the smaller ones to grow in size.
 
 The game ends when:
-- **(Win)** You grow to a size of 200px, or 
+- **(Win)** You grow to a size of 100px, or 
 - **(Loss)** You are caught by a blob bigger than you.
 
 > **PLAY THE GAME:** https://runite-drill.github.io/Blobby/
@@ -25,9 +25,10 @@ To start the game, click the mouse in the game screen, or press SPACEBAR.
 ## HOW TO PLAY
 
 ### CONTROLS
-Your blob can be moved by  using the arrow keys or WASD on your keyboard. You are unable to move your blob outside of the game window.
+Your blob can be moved by using the arrow keys or WASD on your keyboard. You are unable to move your blob outside of the game window.
+You have access to a temporary speed boost which can be activated by pressing SPACEBAR. Once used, the speed boost cannot be used again for 12s.
 
-The game can be paused at any time by clicking on the timer in the menubar or by pressing SPACEBAR.
+The game can be paused at any time by clicking on the timer in the menubar or by pressing Q.
 
 <img src="assets/screenshots/gamePaused.png">
 
