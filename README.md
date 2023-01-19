@@ -57,11 +57,11 @@ As time progresses the spawn rate of blobs and special blobs will increase, maki
 
 <img src="assets/screenshots/gameOver.png">
 
-The game ends when you either reach 200px in size, or collide with a blob bigger than you.
+The game ends when you either reach 100px in size, or collide with a blob bigger than you.
 
 When the game has ended, you will be able to restart by pressing SPACEBAR or by clicking on the game clock.
 
-> Think you can beat my current best time of 92.37s? Give **Blobby** a go on [Github](https://camielvs.github.io/Blobby/)!
+> Think you can beat my current best time of 90.70s? Give **Blobby** a go on [Github](https://camielvs.github.io/Blobby/)!
 
 ### BLOB TYPES
 There are nine different types of blob that can appear in the game:
