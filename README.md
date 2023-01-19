@@ -12,7 +12,7 @@ The game ends when:
 - **(Win)** You grow to a size of 100px, or 
 - **(Loss)** You are caught by a blob bigger than you.
 
-> **PLAY THE GAME:** https://runite-drill.github.io/Blobby/
+> **PLAY THE GAME:** https://camielvs.github.io/Blobby/
 
 ## SETUP
 
@@ -61,7 +61,7 @@ The game ends when you either reach 200px in size, or collide with a blob bigger
 
 When the game has ended, you will be able to restart by pressing SPACEBAR or by clicking on the game clock.
 
-> Think you can beat my current best time of 92.37s? Give **Blobby** a go on [Github](https://runite-drill.github.io/Blobby/)!
+> Think you can beat my current best time of 92.37s? Give **Blobby** a go on [Github](https://camielvs.github.io/Blobby/)!
 
 ### BLOB TYPES
 There are nine different types of blob that can appear in the game:
@@ -81,8 +81,8 @@ This game was built using **HTML**, **CSS** and **JavaScript**. JSQuery was not 
 
 This game is not optimised for small screens. Sorry :(
 
-The game can be played on Github: https://runite-drill.github.io/Blobby/
-and the source code can be found in the Github repository: https://github.com/Runite-Drill/Blobby.git
+The game can be played on Github: https://camielvs.github.io/Blobby/
+and the source code can be found in the Github repository: https://github.com/camielvs/Blobby.git
 
 > This game was built as part of General Assembly's Software Development Bootcamp.
 
