@@ -71,7 +71,7 @@ There are nine different types of blob that can appear in the game:
 3. **Speeder** (orange): small, but moves very fast.
 4. **Grower** (teal): size increases over time.
 5. **Jumbo** (grey): big, but very slow.
-6. **Tracker** (red): relentlessly hunts the player until it releases it is too small.
+6. **Tracker** (red): relentlessly hunts the player until it realises it is too small.
 7. **Hawk** (brown): broadly circles the player before striking.
 8. **Meteor** (yellow): moves fast and is drawn in by the player's gravity. Will cause the player to shrink if consumed.
 9. **Radioactive** (multi-coloured): follows the player closely and spawns glowing toxic particles as it goes. Will cause the player to shrink if consumed. Very rare.
